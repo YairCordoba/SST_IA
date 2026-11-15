@@ -36,8 +36,8 @@ from app.services.dataset_service import dataset_service
 import pathlib, torch
 
 BASE_DIR = pathlib.Path(__file__).resolve().parent.parent
-SST_MODEL_PATH = BASE_DIR / "Modulo_SST_IA" / "models" / "sst_best.pt"
-YOLO_MODEL_PATH = BASE_DIR / "Modulo_SST_IA" / "models" / "yolov8n.pt"
+SST_MODEL_PATH = BASE_DIR / "public" / "models" / "sst_best.pt"
+YOLO_MODEL_PATH = BASE_DIR / "public" / "models" / "yolov8n.pt"
 
 sst_model = torch.load(str(SST_MODEL_PATH), map_location="cpu")
 yolo_model = torch.load(str(YOLO_MODEL_PATH), map_location="cpu")
