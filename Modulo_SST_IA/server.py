@@ -34,6 +34,11 @@ from app.services.detector_ia import detector_ia_service
 from app.services.pdf_service import pdf_service
 from app.services.dataset_service import dataset_service
 import pathlib, torch
+import httpx
+
+FLY_URL = "https://sst-ia-ml.fly.dev"
+
+FLY_URL = "https://sst-ia-ml.fly.dev"
 
 BASE_DIR = pathlib.Path(__file__).resolve().parent.parent
 SST_MODEL_PATH = BASE_DIR / "public" / "models" / "sst_best.pt"
@@ -82,15 +87,11 @@ async def analizar_flutter(req: AnalizarRequest):
     Devuelve elemento, categoria, condicion, confianza y recomendacion.
     """
     try:
-        resultado = detector_ia_service.analizar(
-            foto_base64=req.foto_base64,
-            observacion=req.observacion or "",
-            ubicacion=req.ubicacion or "",
-            tipo_esperado=req.tipo_esperado or ""
-        )
-        return resultado
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error durante el análisis SST: {str(e)}")
+        resp = httpx.post(f"{FLY_URL}/analizar", json=req.dict())
+        resp.raise_for_status()
+        return resp.json()
+    except httpx.HTTPError as e:
+        raise HTTPException(status_code=502, detail=str(e))
 
 # -------------------------------------------------------------
 # 2. GESTIÓN DE INSPECCIONES
