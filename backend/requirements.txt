@@ -1,0 +1,7 @@
+﻿fastapi==0.162.5
+uvicorn==0.54.0
+pydantic==2.14.3
+starlette==1.10.0
+Mangum==0.17.0
+# Añade aquí cualquier otra dependencia que ya tenías en
+# Modulo_SST_IA (p.ej. pdf, opencv, etc.)

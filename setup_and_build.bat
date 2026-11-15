@@ -1,0 +1,150 @@
+@echo off
+setlocal EnableDelayedExpansion
+
+:: -------------------------------------------------
+:: 1️⃣  CONFIGURACIÓN DE VARIABLES
+:: -------------------------------------------------
+rem Ruta absoluta del proyecto (cámbiala si tu carpeta está en otro lugar)
+set "PROJECT_ROOT=C:\Users\Yair Cordoba\Desktop\sst-ia-deploy"
+
+rem Ruta al bin de Flutter (ajusta si instalaste Flutter en otro sitio)
+set "FLUTTER_BIN=C:\src\flutter\bin"
+
+rem Ruta al backend (Modulo_SST_IA)
+set "BACKEND_DIR=%PROJECT_ROOT%\backend"
+
+rem Ruta al entorno virtual dentro del backend
+set "VENV_DIR=%BACKEND_DIR%\.venv"
+
+rem ------------------------------
+rem Añadir Flutter al PATH (si aún no está)
+rem ------------------------------
+echo.
+echo -------------------------------------------------
+echo Verificando Flutter en el PATH…
+echo -------------------------------------------------
+where flutter >nul 2>&1
+if errorlevel 1 (
+    if exist "%FLUTTER_BIN%" (
+        set "PATH=%FLUTTER_BIN%;%PATH%"
+        echo [INFO] Flutter añadido al PATH desde "%FLUTTER_BIN%".
+    ) else (
+        echo [ERROR] No se encontró flutter.exe ni la carpeta "%FLUTTER_BIN%".
+        echo         Instala Flutter o corrige la variable FLUTTER_BIN.
+        pause
+        exit /b 1
+    )
+) else (
+    echo [OK] Flutter ya está disponible en el PATH.
+)
+
+rem -------------------------------------------------
+rem 2️⃣  COMPILAR Flutter Web
+rem -------------------------------------------------
+echo.
+echo -------------------------------------------------
+echo COMPILANDO Flutter Web (release)…
+echo -------------------------------------------------
+cd /d "%PROJECT_ROOT%\flutter"
+if errorlevel 1 (
+    echo [ERROR] No se pudo cambiar a la carpeta flutter.
+    pause
+    exit /b 1
+)
+
+flutter clean
+if errorlevel 1 (
+    echo [ERROR] flutter clean falló.
+    pause
+    exit /b 1
+)
+
+flutter pub get
+if errorlevel 1 (
+    echo [ERROR] flutter pub get falló.
+    pause
+    exit /b 1
+)
+
+flutter build web --release
+if errorlevel 1 (
+    echo [ERROR] flutter build web falló.
+    pause
+    exit /b 1
+)
+
+echo [OK] Flutter Web compilado en "%PROJECT_ROOT%\flutter\build\web"
+
+rem -------------------------------------------------
+rem 3️⃣  CREAR/ACTIVAR ENTORNO VIRTUAL PYTHON
+rem -------------------------------------------------
+echo.
+echo -------------------------------------------------
+echo PREPARANDO ENTORNO PYTHON (backend)…
+echo -------------------------------------------------
+cd /d "%BACKEND_DIR%"
+if errorlevel 1 (
+    echo [ERROR] No se pudo cambiar a la carpeta backend.
+    pause
+    exit /b 1
+)
+
+rem Si el venv no existe, crear uno nuevo
+if not exist "%VENV_DIR%" (
+    echo [INFO] Creando entorno virtual en "%VENV_DIR%".
+    python -m venv .venv
+    if errorlevel 1 (
+        echo [ERROR] python -m venv falló.
+        pause
+        exit /b 1
+    )
+) else (
+    echo [OK] Entorno virtual ya existe.
+)
+
+rem Usar pip del venv directamente (no necesita activar)
+set "PIP_EXE=%VENV_DIR%\Scripts\pip.exe"
+
+rem Instalar dependencias del backend
+if exist "requirements.txt" (
+    "%PIP_EXE%" install --upgrade pip
+    "%PIP_EXE%" install -r requirements.txt
+    if errorlevel 1 (
+        echo [ERROR] pip install falló.
+        pause
+        exit /b 1
+    )
+) else (
+    echo [WARN] No se encontró requirements.txt. Skipping pip install.
+)
+
+echo [OK] Dependencias Python instaladas.
+
+rem -------------------------------------------------
+rem 4️⃣  (OPCIONAL) INICIAR EL SERVIDOR FASTAPI LOCALMENTE
+rem -------------------------------------------------
+echo.
+set /p START_SERVER="¿Quieres iniciar el servidor FastAPI ahora? (S/N): "
+if /I "%START_SERVER%"=="S" (
+    echo -------------------------------------------------
+    echo INICIANDO SERVIDOR FASTAPI (http://127.0.0.1:5000)…
+    echo -------------------------------------------------
+    "%VENV_DIR%\Scripts\python.exe" -m uvicorn server:app --host 127.0.0.1 --port 5000
+) else (
+    echo [INFO] Saltando el arranque del servidor. Puedes hacerlo manualmente con:
+    echo   %VENV_DIR%\Scripts\python.exe -m uvicorn server:app --host 127.0.0.1 --port 5000
+)
+
+rem -------------------------------------------------
+rem 5️⃣  FIN
+rem -------------------------------------------------
+echo.
+echo =================================================
+echo  ✅  Todo el proceso ha finalizado con éxito.
+echo  • Flutter Web está en   %PROJECT_ROOT%\flutter\build\web
+echo  • Backend listo en      %BACKEND_DIR%
+echo  • Entorno virtual:      %VENV_DIR%
+echo =================================================
+echo.
+pause
+exit /b 0
