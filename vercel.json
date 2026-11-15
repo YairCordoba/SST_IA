@@ -1,4 +1,8 @@
-﻿{
+{
   "outputDirectory": "public",
-  "includeFiles": ["Modulo_SST_IA/models/**"]
+  "functions": {
+    "api/**/*.py": {
+      "runtime": "python@3.11"
+    }
+  }
 }
