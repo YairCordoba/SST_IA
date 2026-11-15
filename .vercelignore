@@ -1,1 +1,7 @@
 public/models/*
+Modulo_SST_IA/**
+api/**
+backend/**
+scripts/**
+fly.toml
+Dockerfile
