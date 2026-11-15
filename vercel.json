@@ -1,0 +1,4 @@
+﻿{
+  "outputDirectory": "public",
+  "includeFiles": ["Modulo_SST_IA/models/**"]
+}
